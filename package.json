@@ -1,7 +1,7 @@
 {
   "name": "@pyvuetify/vuetify",
   "type": "module",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Vuetify utilities for anywidget",
   "license": "MIT",
   "main": "index.js",
