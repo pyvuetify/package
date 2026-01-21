@@ -1,7 +1,9 @@
 {
   "commitizen": {
-    "version": "0.1.0",
-    "version_files": ["package.json:version"],
+    "version": "0.6.0",
+    "version_files": [
+      "package.json:version"
+    ],
     "tag_format": "$version",
     "update_changelog_on_bump": false
   }
