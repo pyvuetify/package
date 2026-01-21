@@ -9,6 +9,9 @@
   "files": [
     "dist"
   ],
+  "repository": {
+    "url": "https://github.com/pyvuetify/package"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
