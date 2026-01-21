@@ -3,7 +3,7 @@ name: Release NPM Package
 on:
   push:
     tags:
-      - "v*"
+      - "*"
 
 permissions:
   contents: read
