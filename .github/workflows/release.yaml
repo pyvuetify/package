@@ -1,20 +1,21 @@
 name: Release NPM Package
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - "*"
 
-    permissions:
-      contents: read
-      id-token: write
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "latest"
           registry-url: "https://registry.npmjs.org"
