@@ -1,6 +1,6 @@
 {
   "commitizen": {
-    "version": "0.2.3",
+    "version": "0.2.4",
     "version_files": [
       "package.json:version"
     ],
