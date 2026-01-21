@@ -1,9 +1,8 @@
 name: Release NPM Package
 
 on:
-  push:
-    tags:
-      - "*"
+  release:
+    types: [created]
 
 permissions:
   contents: read
