@@ -1,19 +1,19 @@
 import {
-	createApp,
-	customRef,
-	defineComponent,
-	h,
-	inject,
-	onMounted,
-	onUnmounted,
-	provide,
-	toValue,
-	unref,
+  createApp,
+  customRef,
+  defineComponent,
+  h,
+  inject,
+  onMounted,
+  onUnmounted,
+  provide,
+  toValue,
+  unref,
 } from "vue";
-import 'vuetify/styles'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
+import "vuetify/styles";
+import { createVuetify } from "vuetify";
+import * as components from "vuetify/components";
+import * as directives from "vuetify/directives";
 
 /**
  * @template {Record<string, any>} T
@@ -31,9 +31,9 @@ const RENDER_CONTEXT_KEY = Symbol("anywidget.RenderContext");
  * @returns {RenderContext<any>}
  */
 function useRenderContext() {
-	let ctx = inject(RENDER_CONTEXT_KEY);
-	if (!ctx) throw new Error("anywidget.RenderContext is not provided.");
-	return ctx;
+  let ctx = inject(RENDER_CONTEXT_KEY);
+  if (!ctx) throw new Error("anywidget.RenderContext is not provided.");
+  return ctx;
 }
 
 /**
@@ -41,14 +41,14 @@ function useRenderContext() {
  * @returns {import("@anywidget/types").AnyModel<T>}
  */
 export function useModel() {
-	let ctx = useRenderContext();
-	return ctx.model;
+  let ctx = useRenderContext();
+  return ctx.model;
 }
 
 /** @returns {import("@anywidget/types").Experimental} */
 export function useExperimental() {
-	let ctx = useRenderContext();
-	return ctx.experimental;
+  let ctx = useRenderContext();
+  return ctx.experimental;
 }
 
 /**
@@ -77,58 +77,58 @@ export function useExperimental() {
  * @returns {import("vue").ShallowRef<S>}
  */
 export function useModelState(key) {
-	const model = useModel();
+  const model = useModel();
 
-	/**
-	 * @type {VoidFunction}
-	 */
-	let trigger;
+  /**
+   * @type {VoidFunction}
+   */
+  let trigger;
 
-	/**
-	 * @type {import("vue").Ref<S>}
-	 */
-	const value = customRef((_track, _trigger) => {
-		trigger = _trigger;
-		return {
-			get() {
-				_track();
-				return model.get(unref(key));
-			},
-			set(newValue) {
-				model.set(unref(key), toValue(newValue));
-				model.save_changes();
-			},
-		};
-	});
+  /**
+   * @type {import("vue").Ref<S>}
+   */
+  const value = customRef((_track, _trigger) => {
+    trigger = _trigger;
+    return {
+      get() {
+        _track();
+        return model.get(unref(key));
+      },
+      set(newValue) {
+        model.set(unref(key), toValue(newValue));
+        model.save_changes();
+      },
+    };
+  });
 
-	const update = () => {
-		value.value = model.get(unref(key));
-		trigger();
-	};
+  const update = () => {
+    value.value = model.get(unref(key));
+    trigger();
+  };
 
-	onMounted(() => {
-		model.on(`change:${key}`, update);
-	});
+  onMounted(() => {
+    model.on(`change:${key}`, update);
+  });
 
-	onUnmounted(() => {
-		model.off(`change:${key}`, update);
-	});
+  onUnmounted(() => {
+    model.off(`change:${key}`, update);
+  });
 
-	return value;
+  return value;
 }
 
 /**
  * @type {import("vue").DefineSetupFnComponent<RenderContext<any>>}
  */
 const WidgetWrapper = defineComponent(
-	({ model, experimental }, ctx) => {
-		provide(RENDER_CONTEXT_KEY, { model, experimental });
-		return () => ctx.slots?.default?.();
-	},
-	{
-		props: ["model", "experimental"],
-		name: "WidgetWrapper",
-	},
+  ({ model, experimental }, ctx) => {
+    provide(RENDER_CONTEXT_KEY, { model, experimental });
+    return () => ctx.slots?.default?.();
+  },
+  {
+    props: ["model", "experimental"],
+    name: "WidgetWrapper",
+  }
 );
 
 /**
@@ -136,11 +136,11 @@ const WidgetWrapper = defineComponent(
  * @returns {import("@anywidget/types").Render}
  */
 export function createRender(Widget) {
-	return ({ el, model, experimental }) => {
-        const vuetify = createVuetify({components, directives})
-		const app = createApp(h(WidgetWrapper, { model, experimental }, h(Widget)));
-		app.use(vuetify).mount(el);
+  return ({ el, model, experimental }) => {
+    const vuetify = createVuetify({ components, directives });
+    const app = createApp(h(WidgetWrapper, { model, experimental }, h(Widget)));
+    app.use(vuetify).mount(el);
 
-		return () => app.unmount();
-	};
+    return () => app.unmount();
+  };
 }
