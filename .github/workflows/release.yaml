@@ -1,9 +1,9 @@
 name: Release NPM Package
 
 on:
-  workflow_dispatch:
-  release:
-    types: [created]
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: read
