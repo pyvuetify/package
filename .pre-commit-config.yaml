@@ -12,3 +12,4 @@ repos:
     hooks:
       - id: prettier
         stages: [pre-commit]
+        exclude: ^\.cz\.json$
