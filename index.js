@@ -7,8 +7,10 @@ import {
   onMounted,
   onUnmounted,
   provide,
+  ref,
   toValue,
   unref,
+  watch,
 } from "vue";
 import "vuetify/styles";
 import { createVuetify } from "vuetify";
@@ -20,6 +22,7 @@ import * as directives from "vuetify/directives";
  * @typedef RenderContext
  * @property {import("@anywidget/types").AnyModel<T>} model
  * @property {import("@anywidget/types").Experimental} experimental
+ * @property {import("@anywidget/types").Host} host
  */
 
 /**
@@ -49,6 +52,12 @@ export function useModel() {
 export function useExperimental() {
   let ctx = useRenderContext();
   return ctx.experimental;
+}
+
+/** @returns {import("@anywidget/types").Host} */
+export function useHost() {
+  let ctx = useRenderContext();
+  return ctx.host;
 }
 
 /**
@@ -121,12 +130,12 @@ export function useModelState(key) {
  * @type {import("vue").DefineSetupFnComponent<RenderContext<any>>}
  */
 const WidgetWrapper = defineComponent(
-  ({ model, experimental }, ctx) => {
-    provide(RENDER_CONTEXT_KEY, { model, experimental });
+  ({ model, experimental, host }, ctx) => {
+    provide(RENDER_CONTEXT_KEY, { model, experimental, host });
     return () => ctx.slots?.default?.();
   },
   {
-    props: ["model", "experimental"],
+    props: ["model", "experimental", "host"],
     name: "WidgetWrapper",
   }
 );
@@ -136,11 +145,75 @@ const WidgetWrapper = defineComponent(
  * @returns {import("@anywidget/types").Render}
  */
 export function createRender(Widget) {
-  return ({ el, model, experimental }) => {
+  return ({ el, model, experimental, host }) => {
     const vuetify = createVuetify({ components, directives });
-    const app = createApp(h(WidgetWrapper, { model, experimental }, h(Widget)));
+    const app = createApp(
+      h(WidgetWrapper, { model, experimental, host }, h(Widget)),
+    );
     app.use(vuetify).mount(el);
 
     return () => app.unmount();
   };
 }
+
+/**
+ * Vue component that renders an anywidget child widget or plain text.
+ * Accepts a single `reference` prop:
+ *  - If it starts with "anywidget:" → resolves via host.getWidget() and renders the child
+ *  - Otherwise → renders as a text node
+ */
+export const WidgetSlot = defineComponent(
+  (props) => {
+    const host = useHost();
+    const container = ref(null);
+    let abortController = null;
+
+    async function mountWidget(reference) {
+      // Clean up previous child
+      if (abortController) {
+        abortController.abort();
+        abortController = null;
+      }
+      if (!container.value) return;
+
+      if (
+        typeof reference === "string" &&
+        reference.startsWith("anywidget:")
+      ) {
+        abortController = new AbortController();
+        const child = await host.getWidget(reference);
+        if (abortController.signal.aborted) return;
+        container.value.innerHTML = "";
+        await child.render({
+          el: container.value,
+          signal: abortController.signal,
+        });
+      } else if (reference != null) {
+        container.value.textContent = String(reference);
+      } else {
+        container.value.innerHTML = "";
+      }
+    }
+
+    onMounted(() => {
+      mountWidget(props.reference);
+    });
+
+    onUnmounted(() => {
+      if (abortController) {
+        abortController.abort();
+      }
+    });
+
+    watch(
+      () => props.reference,
+      (newRef) => mountWidget(newRef),
+    );
+
+    return () => h("span", { ref: container });
+  },
+  {
+    props: ["reference"],
+    name: "WidgetSlot",
+  },
+);
